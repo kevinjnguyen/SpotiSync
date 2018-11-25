@@ -15,6 +15,7 @@ export const environment = {
       PROFILE: 'https://api.spotify.com/v1/me',
       PAUSE: 'https://api.spotify.com/v1/me/player/pause',
       SEARCH: 'https://api.spotify.com/v1/search',
+      TRACK: 'https://api.spotify.com/v1/tracks/',
     }
   },
   firebase: {

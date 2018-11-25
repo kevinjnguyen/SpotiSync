@@ -19,7 +19,8 @@ export class RoomComponent implements OnInit {
   public textStatus: string = 'Ready to Play!';
   public btnText: string = 'Start';
   public playUri: any;
-
+  
+  private currentId: any;
   private device_id: string;
   private status: boolean = false;
 
@@ -43,6 +44,13 @@ export class RoomComponent implements OnInit {
       this.playUri = res;
     });
 
+    this.af.object('rooms/' + this.roomService.getRoomId() + '/currentUri').valueChanges().subscribe( (res) => {
+      this.currentId = res;
+      this.spotifyService.getTrack(this.currentId).subscribe( (res) => {
+        this.currentTrack = res;
+      });
+    });
+
     this.af.object('rooms/' + this.roomService.getRoomId() + '/status').valueChanges().subscribe( (res: boolean) => {
       this.status = res;
       if (res) {
@@ -59,9 +67,6 @@ export class RoomComponent implements OnInit {
             }
           });
         }
-        this.af.object('rooms/' + this.roomService.getRoomId()).update({
-          currentUri: this.currentTrack.uri,
-        });
       } else {
         this.textStatus = 'Ready to Play!';
         this.btnText = 'Start';
@@ -78,6 +83,11 @@ export class RoomComponent implements OnInit {
   }
 
   public toggle() {
+    if(!this.status) {
+      this.af.object('rooms/' + this.roomService.getRoomId()).update({
+        currentUri: this.currentTrack.id,
+      });
+    }
     this.af.object('rooms/' + this.roomService.getRoomId()).update({
       status: !this.status,
     });
@@ -99,5 +109,11 @@ export class RoomComponent implements OnInit {
 
   public back() {
     this.currentTrack = null;
+  }
+
+  public viewNowPlaying() {
+    this.spotifyService.getTrack(this.currentId).subscribe( (res) => {
+      this.currentTrack = res;
+    });
   }
 }

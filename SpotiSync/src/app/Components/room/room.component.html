@@ -33,6 +33,10 @@
                     </div>
                 </div>
             </div>
+            <hr>
+            <div *ngIf="currentId">
+                <button (click)="viewNowPlaying()" class="button">Now Playing</button> 
+            </div>
         </div>
 
         <div *ngIf="currentTrack">
@@ -47,6 +51,7 @@
             <p>{{currentSong}}</p>
             <!-- <button (click)="stop()" class="button">Stop</button> -->
         </div>
+
     </header>
 </section>
 

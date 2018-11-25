@@ -99,6 +99,14 @@ export class SpotifyService {
       }
     });
   }
+
+  public getTrack(id: string) {
+    return this.http.get(environment.SPOTIFY.API.TRACK + id, {
+      headers: new HttpHeaders({
+        'Authorization': 'Bearer ' + this.accessToken
+      })
+    });
+  }
 }
 
 export interface SpotifyDevicesRes {
