@@ -14,14 +14,10 @@ export class LoginComponent {
   public accessToken: string;
   public roomCode: string;
 
-  constructor(private spotifyService: SpotifyService, private route: ActivatedRoute, private af: AngularFireDatabase, private roomService: RoomService, private router: Router) {
-    this.route.queryParams.subscribe(params => {
-      if (!params.code) {
-        this.router.navigate(['']);
-      }
-      this.accessToken = params.code;
-      this.spotifyService.setAccessToken(params.code);
-    });
+  constructor(private spotifyService: SpotifyService, private af: AngularFireDatabase, private roomService: RoomService, private router: Router) {
+    if (!this.spotifyService.isAuth()) {
+      this.router.navigate(['']);
+    }
   }
 
   public join(room: string) {

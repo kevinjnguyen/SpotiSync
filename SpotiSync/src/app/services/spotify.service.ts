@@ -21,6 +21,10 @@ export class SpotifyService {
     this.profile = profile;
   }
 
+  public isAuth() {
+    return this.accessToken !== undefined;
+  }
+
   public auth() {
     const url = environment.SPOTIFY.API.AUTHORIZE +
     '?response_type=code' +
