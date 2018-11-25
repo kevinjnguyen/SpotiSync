@@ -19,9 +19,12 @@ export class RoomComponent implements OnInit {
   public textStatus: string = 'Ready to Play!';
   public btnText: string = 'Start';
   public playUri: any;
-  
+  public devices: any[] = [];
+  public isDeviceRefreshing: boolean = false;
+
   private currentId: any;
   private device_id: string;
+  private current_device_id: string;
   private status: boolean = false;
 
   constructor(private af: AngularFireDatabase, private roomService: RoomService, private spotifyService: SpotifyService, private router: Router) { }
@@ -35,6 +38,8 @@ export class RoomComponent implements OnInit {
     if (!this.spotifyService.isAuth()) {
       this.router.navigate(['']);
     }
+
+    this.refresh();
 
     this.af.object('rooms/' + this.roomService.getRoomId() + '/members').valueChanges().subscribe( (res) => {
       this.room = res;
@@ -56,23 +61,11 @@ export class RoomComponent implements OnInit {
       if (res) {
         this.textStatus = 'Playing...';
         this.btnText = 'Stop';
-        if (this.device_id) {
-          this.spotifyService.playTrackOnDevice(this.playUri, this.device_id).subscribe();
-        } else {
-          this.spotifyService.getDevices().subscribe( (spotifyRes: SpotifyDevicesRes) => {
-            if (spotifyRes.devices.length > 0) {
-              this.device_id = spotifyRes.devices[0].id;
-              this.spotifyService.playTrackOnDevice(this.playUri, spotifyRes.devices[0].id).subscribe( (play) => {
-              });
-            }
-          });
-        }
+        this.spotifyService.playTrackOnDevice(this.playUri, this.current_device_id).subscribe();
       } else {
         this.textStatus = 'Ready to Play!';
         this.btnText = 'Start';
-        if (this.device_id) {
-          this.spotifyService.pauseOnDevice(this.device_id).subscribe();
-        }
+        this.spotifyService.pauseOnDevice(this.current_device_id).subscribe();
       }
     });
 
@@ -87,6 +80,7 @@ export class RoomComponent implements OnInit {
       this.af.object('rooms/' + this.roomService.getRoomId()).update({
         currentUri: this.currentTrack.id,
       });
+      this.current_device_id = this.device_id;
     }
     this.af.object('rooms/' + this.roomService.getRoomId()).update({
       status: !this.status,
@@ -115,5 +109,36 @@ export class RoomComponent implements OnInit {
     this.spotifyService.getTrack(this.currentId).subscribe( (res) => {
       this.currentTrack = res;
     });
+  }
+
+  public refresh() {
+    this.isDeviceRefreshing = true;
+    this.spotifyService.getDevices().subscribe((res: any) => {
+      this.devices = res.devices;
+      if (this.devices.length > 0) {
+        if (this.device_id) {
+          let previous = null;
+          for (let id of this.devices) {
+            if (id === this.current_device_id) {
+              previous = id;
+            }
+          }
+          if (!previous) {
+            this.device_id = this.devices[0].id;
+          }
+        } else {
+          this.device_id = this.devices[0].id;
+        }
+      } else {
+        this.devices.push({name: 'No Devices Found', id: null});
+        this.device_id = null;
+      }
+    }, null, () => {
+      this.isDeviceRefreshing = false;
+    });
+  }
+
+  public onChange(deviceValue) {
+    this.device_id = deviceValue;
   }
 }

@@ -46,10 +46,22 @@
             <h6>{{currentTrack.album.name}}</h6>
             <img src="{{currentTrack.album.images[1].url}}" alt="" width="200px">
             <hr>
-            <p>{{textStatus}}</p>
-            <button (click)="toggle()" class="button">{{btnText}}</button> 
-            <p>{{currentSong}}</p>
-            <!-- <button (click)="stop()" class="button">Stop</button> -->
+            <h5>Playback</h5>
+            <div class="fields">
+                <div class="field selecte-device">
+                    <select name="selectDevices" id="selectDevices" (change)="onChange($event.target.value)" [disabled]="isDeviceRefreshing">
+                        <option [value]="device.id" *ngFor="let device of devices">{{device.name}}</option>
+                    </select>
+                    <button class="refresh-btn" [disabled]="isDeviceRefreshing" (click)="refresh()"><i class="fa fa-refresh" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+            <div *ngIf="device_id">
+                <br>
+                <p>{{textStatus}}</p>
+                <button (click)="toggle()" class="button">{{btnText}}</button> 
+                <p>{{currentSong}}</p>
+            </div>
         </div>
 
     </header>
