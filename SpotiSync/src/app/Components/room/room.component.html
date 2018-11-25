@@ -4,7 +4,49 @@
 <!-- Main -->
 <section id="main">
     <header>
-    <button (click)="toggle()">Start/Stop</button>
+        <div *ngIf="!currentTrack">
+            <h4>Song Selection</h4>
+            <p></p>
+            <form #songForm="ngForm" (ngSubmit)="onSubmit()">
+            <div class="fields">
+                <div class="field">
+                <input type="text" required name="songName" id="songName" placeholder="Song name" [(ngModel)]="songName"
+                    #name="ngModel" />
+                <div [hidden]="name.valid || name.pristine" class="alert alert-danger">
+                    Song name is required.
+                </div>
+                </div>
+            </div>
+            <button type="submit" class="button" [disabled]="!songForm.form.valid">Search</button>
+            </form>
+        
+            <div *ngIf="results.length > 0" class="song">
+                <div *ngFor="let track of results" class="card flex-row" (click)="select(track)">
+                    <div class="card-header border-0">
+                        <img src="{{track.album.images[2].url}}" alt="">
+                    </div>
+                    <div class="card-block px-2 text-left">
+                        <h6 class="card-title">{{track.name}}</h6>
+                        <p class="card-text">{{track.artists[0].name}}
+                            <br/>
+                        {{track.album.name}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="currentTrack">
+            <button (click)="back()" class="button">Back to Search</button>
+            <hr>
+            <h3>{{currentTrack.name}}</h3>
+            <h6>{{currentTrack.album.name}}</h6>
+            <img src="{{currentTrack.album.images[1].url}}" alt="" width="200px">
+            <hr>
+            <p>{{textStatus}}</p>
+            <button (click)="toggle()" class="button">{{btnText}}</button> 
+            <p>{{currentSong}}</p>
+            <!-- <button (click)="stop()" class="button">Stop</button> -->
+        </div>
     </header>
 </section>
 

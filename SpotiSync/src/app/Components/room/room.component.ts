@@ -12,9 +12,16 @@ import { Router } from '@angular/router';
 })
 export class RoomComponent implements OnInit {
 
+  public songName: string;
   public room: any;
+  public results: any[] = [];
+  public currentTrack: any;
+  public textStatus: string = 'Ready to Play!';
+  public btnText: string = 'Start';
+  public playUri: any;
+
   private device_id: string;
-  private status: boolean;
+  private status: boolean = false;
 
   constructor(private af: AngularFireDatabase, private roomService: RoomService, private spotifyService: SpotifyService, private router: Router) { }
 
@@ -24,39 +31,73 @@ export class RoomComponent implements OnInit {
       this.router.navigate(['']);
     }
 
-    this.af.object('rooms/123/members').valueChanges().subscribe( (res) => {
+    if (!this.spotifyService.isAuth()) {
+      this.router.navigate(['']);
+    }
+
+    this.af.object('rooms/' + this.roomService.getRoomId() + '/members').valueChanges().subscribe( (res) => {
       this.room = res;
     });
 
-    this.af.object('rooms/123').update({
-      status: false,
+    this.af.object('rooms/' + this.roomService.getRoomId() + '/playUri').valueChanges().subscribe( (res) => {
+      this.playUri = res;
     });
 
-    this.af.object('rooms/123/status').valueChanges().subscribe( (res: boolean) => {
+    this.af.object('rooms/' + this.roomService.getRoomId() + '/status').valueChanges().subscribe( (res: boolean) => {
       this.status = res;
       if (res) {
+        this.textStatus = 'Playing...';
+        this.btnText = 'Stop';
         if (this.device_id) {
-          this.spotifyService.playTrackOnDevice('spotify:track:2rPE9A1vEgShuZxxzR2tZH', this.device_id).subscribe();
+          this.spotifyService.playTrackOnDevice(this.playUri, this.device_id).subscribe();
         } else {
           this.spotifyService.getDevices().subscribe( (spotifyRes: SpotifyDevicesRes) => {
             if (spotifyRes.devices.length > 0) {
               this.device_id = spotifyRes.devices[0].id;
-              this.spotifyService.playTrackOnDevice('spotify:track:2rPE9A1vEgShuZxxzR2tZH', spotifyRes.devices[0].id).subscribe( (play) => {
+              this.spotifyService.playTrackOnDevice(this.playUri, spotifyRes.devices[0].id).subscribe( (play) => {
               });
             }
           });
         }
+        this.af.object('rooms/' + this.roomService.getRoomId()).update({
+          currentUri: this.currentTrack.uri,
+        });
       } else {
+        this.textStatus = 'Ready to Play!';
+        this.btnText = 'Start';
         if (this.device_id) {
           this.spotifyService.pauseOnDevice(this.device_id).subscribe();
         }
       }
-    })
+    });
+
+    this.af.object('rooms/' + this.roomService.getRoomId()).update({
+      status: this.status,
+    });
+
   }
 
   public toggle() {
-    this.af.object('rooms/123').update({
+    this.af.object('rooms/' + this.roomService.getRoomId()).update({
       status: !this.status,
     });
+  }
+
+  public onSubmit() {;
+    this.spotifyService.searchTrack(this.songName).subscribe( (res:any) => {
+      this.results = res.tracks.items;
+    });
+  }
+
+  public select(track: any) {
+    this.af.object('rooms/' + this.roomService.getRoomId()).update({
+      playUri: track.uri,
+    }).then( () => {
+      this.currentTrack = track;
+    });
+  }
+
+  public back() {
+    this.currentTrack = null;
   }
 }

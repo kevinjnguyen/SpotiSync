@@ -86,6 +86,19 @@ export class SpotifyService {
       })
     });
   }
+
+  public searchTrack(name: string) {
+    return this.http.get(environment.SPOTIFY.API.SEARCH, {
+      headers: new HttpHeaders({
+        'Authorization': 'Bearer ' + this.accessToken
+      }),
+      params: {
+        'q': name,
+        'type': 'track',
+        'limit': '5'
+      }
+    });
+  }
 }
 
 export interface SpotifyDevicesRes {
