@@ -26,7 +26,7 @@ export class LoginComponent {
   }
 
   public onSubmit() {
-    this.roomService.setRoomId(this.roomCode);
+    this.roomService.setRoomId(this.roomCode.toLowerCase());
     this.router.navigate(['/room']);
   }
 }
