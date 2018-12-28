@@ -5,6 +5,8 @@ import os
 
 CLIENT_ID = os.environ['CLIENT_ID']
 CLIENT_SECRET = os.environ['CLIENT_SECRET']
+# Either https://nguyenjkevin.com/SpotiSync?code= or https://localhost:4200?code=
+REDIRECT_URL = os.environ['REDIRECT_URL']
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_API_URL = "https://api.spotify.com/v1"
@@ -21,32 +23,18 @@ def lambda_handler(event, context):
     headers = {"Authorization": "Basic {}".format(base64encoded)}
     post_request = requests.post(SPOTIFY_TOKEN_URL, data=code_payload, headers=headers)
 
-    # Auth Step 5: Tokens are Returned to Application
     response_data = json.loads(post_request.text)
     if 'error' in response_data:
         return {
             'statusCode': 400,
             'body': json.dumps(response_data)
         }
-    print(response_data)
+
     access_token = response_data["access_token"]
-    refresh_token = response_data["refresh_token"]
-    token_type = response_data["token_type"]
-    expires_in = response_data["expires_in"]
-
-    # Auth Step 6: Use the access token to access Spotify API
-    authorization_header = {"Authorization":"Bearer {}".format(access_token)}
-
-    # Get profile data
-    user_profile_api_endpoint = "{}/me".format(SPOTIFY_API_URL)
-    profile_response = requests.get(user_profile_api_endpoint, headers=authorization_header)
-    profile_data = json.loads(profile_response.text)
-    if 'error' in profile_data:
-        return {
-            'statusCode': 400,
-            'body': json.dumps(profile_data)
-        }
     return {
-        'statusCode': 200,
-        'body': json.dumps({'profile':profile_data, 'token': response_data})
+        'statusCode': 301,
+        'body': None,
+        'headers': {
+            'Location': REDIRECT_URL + access_token
+        }
     }
